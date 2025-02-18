@@ -12,7 +12,7 @@ describe('crawler', () => {
             const inputHtmlBody = `
                 <html>
                 <body>
-                <a href="https://google.com/">
+                <a href="https://google.com/path">
                     google landing page
                 </>
                 </<body>
@@ -20,11 +20,28 @@ describe('crawler', () => {
             `;
 
             const actual = getURLsFromHTML(inputHtmlBody, inputBaseURL)
-            const expected = ['https://google.com/']
+            const expected = ['https://google.com/path']
             expect(actual).toEqual(expected)
 
         });
+    
+        test('to return string array of relative links', () => {
+            const inputBaseURL = 'https://google.com'
+            const inputHtmlBody = `
+                <html>
+                <body>
+                <a href="/path">
+                    google landing page
+                </>
+                </<body>
+                </html>
+            `;
 
+            const actual = getURLsFromHTML(inputHtmlBody, inputBaseURL)
+            const expected = ['https://google.com/path']
+            expect(actual).toEqual(expected)
+
+        });
     });
 
 
