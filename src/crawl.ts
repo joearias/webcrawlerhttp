@@ -9,11 +9,23 @@ export function getURLsFromHTML(htmlBody: string, baseURL: string): Array<string
         console.log(`href ${e.href}`)
         if (e.href.slice(0,1)==='/'){
             // relative
-            urls.push(`${baseURL}${e.href}`)
+            try{
+                const urlobj = new URL(`${baseURL}${e.href}`);
+                urls.push(urlobj.href);
+            }
+            catch (error) {
+                console.log(`error with relative url ${error}`)
+            }
         }
         else{
             // absolute
-            urls.push(e.href);
+            try {
+                const urlobj = new URL(e.href);
+                urls.push(urlobj.href);
+            }
+            catch(error) {
+                console.log(`error with absolute url ${error}`)
+            }
         }
     });
     return urls;

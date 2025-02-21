@@ -5,9 +5,24 @@ describe('crawler', () => {
 
     describe('getURLsFromHTML', () => {
 
-        //test('', ()=>{});
+        test('ignores invalid urls', () => {
+            const inputBaseURL = 'https://google.com'
+            const inputHtmlBody = `
+                <html>
+                <body>
+                <a href="invalid">
+                invalid
+                </>
+                </<body>
+                </html>
+            `;
 
-        test('to return string array of links', () => {
+            const actual = getURLsFromHTML(inputHtmlBody, inputBaseURL)
+            const expected: string[]= [];
+            expect(actual).toEqual(expected)
+
+        });
+        test('supports absolute urls', () => {
             const inputBaseURL = 'https://google.com'
             const inputHtmlBody = `
                 <html>
@@ -25,14 +40,14 @@ describe('crawler', () => {
 
         });
     
-        test('to return string array of relative links', () => {
+        test('supports relative links', () => {
             const inputBaseURL = 'https://google.com'
             const inputHtmlBody = `
                 <html>
                 <body>
                 <a href="/path">
                     google landing page
-                </>
+                </a>
                 </<body>
                 </html>
             `;
@@ -42,9 +57,28 @@ describe('crawler', () => {
             expect(actual).toEqual(expected)
 
         });
+
+        test('multiple mixed urls', () => {
+            const inputBaseURL = 'https://google.com'
+            const inputHtmlBody = `
+                <html>
+                <body>
+                <a href="/path1">
+                    google landing page
+                </a>
+                <a href="https://google.com/path2">
+                    google landing page
+                </a>
+                </<body>
+                </html>
+            `;
+
+            const actual = getURLsFromHTML(inputHtmlBody, inputBaseURL)
+            const expected = ['https://google.com/path1', 'https://google.com/path2']
+            expect(actual).toEqual(expected)
+
+        });
     });
-
-
 
     describe('normalizeURL', () => {
         describe('host', () => {
