@@ -10,7 +10,7 @@
   "scripts": {
     "test": "jest",
     "test:debug": "jest --inspect --runInBand",
-    "start": "ts-node ./src/index.ts",
+    "start": "ts-node ./src/main.ts",
     "build": "tsc",
     "clean": "tsc --build --clean"
   },
