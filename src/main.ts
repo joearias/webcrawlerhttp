@@ -1,6 +1,9 @@
-function main(){
+import { crawlPage } from "./crawl";
 
-    if(process.argv.length< 3){
+
+function main() {
+
+    if (process.argv.length < 3) {
         console.log('No website provided');
         process.exit(1);
     }
@@ -11,6 +14,7 @@ function main(){
     const baseURL = process.argv[2];
 
     console.log(`Starting Crawl ${baseURL}`);
+    crawlPage(baseURL);
 }
 
 main();
