@@ -1,19 +1,27 @@
 import { crawlPage, checkUrlBasicFormat, getURLsFromHTML, normalizeURL } from "./crawl";
 import { jest } from '@jest/globals';
-import { Response } from 'node-fetch';
-
-global.fetch = jest.fn() as jest.MockedFunction<typeof global.fetch>;
 
 describe('crawlPage', () => {
+
     let consoleLogSpy: jest.SpiedFunction<typeof console.log>;
+    let fetchMock: jest.SpiedFunction<typeof global.fetch>;
 
     beforeEach(() => {
-        (global.fetch as jest.Mock).mockClear();
+        fetchMock = jest.spyOn(global, 'fetch').mockImplementation(() =>
+            Promise.resolve({
+                ok: true,
+                status: 200,
+                headers: new Headers({ 'content-type': 'text/html' }),
+                text: () => Promise.resolve(''),
+            } as unknown as Response)
+        );
+
         consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
     });
 
     afterEach(() => {
         consoleLogSpy.mockRestore();
+        fetchMock.mockRestore();
     });
 
     test('should not crawl off-site URLs', async () => {
@@ -33,7 +41,7 @@ describe('crawlPage', () => {
     });
 
     test('should handle fetch errors gracefully', async () => {
-        (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error') as never);
+        fetchMock.mockRejectedValue(new Error('Network error'));
         const baseURL = 'https://example.com';
         const pages = await crawlPage(baseURL, baseURL, {});
         // The page is added before the fetch attempt, so it should exist in the map.
@@ -41,22 +49,22 @@ describe('crawlPage', () => {
     });
 
     test('should handle non-2xx HTTP status codes', async () => {
-        (global.fetch as jest.Mock).mockResolvedValue({
+        fetchMock.mockImplementation(() => Promise.resolve({
             status: 404,
             headers: new Headers({ 'content-type': 'text/html' }),
             text: () => Promise.resolve(''),
-        } as never);
+        } as unknown as Response));
         const baseURL = 'https://example.com';
         const pages = await crawlPage(baseURL, baseURL, {});
         expect(pages).toEqual({ 'example.com': 1 });
     });
 
     test('should not attempt to parse non-HTML content', async () => {
-        (global.fetch as jest.Mock).mockResolvedValue({
+        fetchMock.mockImplementation(() => Promise.resolve({
             status: 200,
             headers: new Headers({ 'content-type': 'application/json' }),
             text: () => Promise.resolve('{}'),
-        } as never);
+        } as unknown as Response));
         const baseURL = 'https://example.com';
         const pages = await crawlPage(baseURL, baseURL, {});
         expect(pages).toEqual({ 'example.com': 1 });
