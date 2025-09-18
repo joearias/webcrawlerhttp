@@ -1,20 +1,26 @@
 import { crawlPage } from "./crawl";
-import  * as argsParser from 'args-parser';
+import arg from 'arg'; // Import the 'arg' module
 
 // Parse command-line arguments
 export async function main() {
-    const args = argsParser(process.argv);
+    const args = arg(
+        {
+            '--url': String,
+            '-u': '--url',
+        },
+        {
+            permissive: false,
+            argv: process.argv.slice(2),
+        }
+    )
 
-    if (Object.keys(args).length === 0) {
+    if (!args['--url']) {
         console.log('No website provided');
         process.exit(1);
     }
-    if (Object.keys(args).length > 1 || !args.url) {
-        console.log('Too many command line args');
-        process.exit(1);
-    }
 
-    const baseURL = args.url as string;
+
+    const baseURL = args['--url'] as string;
     console.log(`Starting Crawl ${baseURL}`);
     const pages = await crawlPage(baseURL, baseURL, {});
 

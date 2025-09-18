@@ -25,11 +25,11 @@ describe('main', () => {
         expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
-    test('should exit with code 1 if too many command line args are provided', async () => {
+    test('should throw an error for unknown command line args', async () => {
         process.argv = ['node', 'main.ts', '--url=url1', '--extra=url2'];
-        await main();
-        expect(consoleSpy).toHaveBeenCalledWith('Too many command line args');
-        expect(processExitSpy).toHaveBeenCalledWith(1);
+        // We expect the main function to reject because 'arg' will throw an error
+        await expect(main()).rejects.toThrow('unknown or unexpected option: --extra');
+        expect(processExitSpy).not.toHaveBeenCalled();
     });
 
     test('should start crawl with the provided URL', async () => {
