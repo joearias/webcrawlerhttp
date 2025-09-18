@@ -2,6 +2,9 @@
 import { JSDOM } from 'jsdom'
 
 export async function crawlPage(baseURL: string, currentURL: string, pages: { [x: string]: number }) {
+    if (!checkUrlBasicFormat(currentURL)) {
+        return pages
+    }
     const baseURLObj = new URL(baseURL)
     const currentURLObj = new URL(currentURL)
 
@@ -39,6 +42,16 @@ export async function crawlPage(baseURL: string, currentURL: string, pages: { [x
     }
 
     return pages
+}
+
+export function checkUrlBasicFormat(url: string): boolean {
+    // check if url starts with http or https
+    if (!(url.slice(0, 5) === 'http:' || url.slice(0, 6) === 'https:')) {
+        return false;
+    }
+    else {
+        return true;
+    }
 }
 
 export function getURLsFromHTML(htmlBody: string, baseURL: string): Array<string> {
