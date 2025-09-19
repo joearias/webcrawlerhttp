@@ -19,12 +19,18 @@ export async function main() {
         process.exit(1);
     }
 
+    console.log(args);
 
     const baseURL = args['--url'] as string;
     console.log(`Starting Crawl ${baseURL}`);
     const pages = await crawlPage(baseURL, baseURL, {});
 
-    for (const page of Object.entries(pages)) {
-        console.log(page)
-    }
+    console.log('==========');
+    console.log('CRAWL REPORT');
+    console.log('==========');
+    const sortedPages = Object.entries(pages).sort((a, b) => b[1] - a[1]);
+
+    const report = sortedPages.map(([url, count]) => ({ url, count }));
+
+    console.table(report);
 }

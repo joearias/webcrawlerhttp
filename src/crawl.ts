@@ -2,12 +2,14 @@
 import { JSDOM } from 'jsdom'
 
 export async function crawlPage(baseURL: string, currentURL: string, pages: { [x: string]: number }) {
-    if (!checkUrlBasicFormat(currentURL)) {
-        return pages
+    let baseURLObj, currentURLObj;
+    try {
+        baseURLObj = new URL(baseURL);
+        currentURLObj = new URL(currentURL);
+    } catch (err) {
+        console.log(`Invalid URL: ${currentURL}`);
+        return pages;
     }
-    const baseURLObj = new URL(baseURL)
-    const currentURLObj = new URL(currentURL)
-
     if (baseURLObj.hostname !== currentURLObj.hostname) {
         return pages
     }
@@ -44,50 +46,32 @@ export async function crawlPage(baseURL: string, currentURL: string, pages: { [x
     return pages
 }
 
-export function checkUrlBasicFormat(url: string): boolean {
-    // check if url starts with http or https
-    if (!(url.slice(0, 5) === 'http:' || url.slice(0, 6) === 'https:')) {
-        return false;
-    }
-    else {
-        return true;
-    }
-}
-
 export function getURLsFromHTML(htmlBody: string, baseURL: string): Array<string> {
     // return all clickable link in an array of strings
-    const urls = new Array<string>;
+    const urls: string[] = [];
     const dom = new JSDOM(htmlBody);
-    dom.window.document.querySelectorAll('a').forEach((e) => {
-        if (e.href.slice(0, 1) === '/') {
-            // relative
-            try {
-                const urlobj = new URL(`${baseURL}${e.href}`);
-                urls.push(urlobj.href);
-            }
-            catch (error) {
-                console.log(`error with relative url ${error}`)
-            }
+    const linkElements = dom.window.document.querySelectorAll('a');
+    for (const linkElement of linkElements) {
+        if (!linkElement.href) {
+            continue;
         }
-        else {
-            // absolute
-            try {
-                const urlobj = new URL(e.href);
-                urls.push(urlobj.href);
-            }
-            catch (error) {
-                console.log(`error with absolute url ${error} - ${e.href}`)
-            }
+        try {
+            // The URL constructor will resolve relative URLs against the base URL
+            const urlObj = new URL(linkElement.href, baseURL);
+            urls.push(urlObj.href);
+        } catch (err) {
+            console.log(`Could not get absolute URL from ${linkElement.href}: ${(err as Error).message}`);
         }
-    });
+    }
     return urls;
 }
 
 export function normalizeURL(url: string): string {
     // removes protocol and normalized the host and path
     const urlobj = new URL(url);
-    const urlHost = `${urlobj.hostname}${urlobj.pathname}`.toLocaleLowerCase();
-    const lastChar = urlHost.slice(-1);
-
-    return lastChar === '/' ? urlHost.slice(0, -1) : urlHost;
+    let urlPath = `${urlobj.hostname}${urlobj.pathname}`.toLowerCase();
+    if (urlPath.endsWith('/')) {
+        return urlPath.slice(0, -1);
+    }
+    return urlPath;
 }

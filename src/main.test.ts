@@ -2,18 +2,21 @@ import * as crawl from './crawl';
 import { main } from './main';
 
 describe('main', () => {
-    let consoleSpy: jest.SpyInstance;
+    let consoleLogSpy: jest.SpyInstance;
+    let consoleTableSpy: jest.SpyInstance;
     let processExitSpy: jest.SpyInstance;
     let crawlPageSpy: jest.SpyInstance;
 
     beforeEach(() => {
-        consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
+        consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
+        consoleTableSpy = jest.spyOn(console, 'table').mockImplementation(() => { });
         processExitSpy = jest.spyOn(process, 'exit').mockImplementation((() => { }) as any);
         crawlPageSpy = jest.spyOn(crawl, 'crawlPage').mockResolvedValue({});
     });
 
     afterEach(() => {
-        consoleSpy.mockRestore();
+        consoleLogSpy.mockRestore();
+        consoleTableSpy.mockRestore();
         processExitSpy.mockRestore();
         crawlPageSpy.mockRestore();
     });
@@ -21,7 +24,7 @@ describe('main', () => {
     test('should exit with code 1 if no website is provided', async () => {
         process.argv = ['node', 'main.ts']; // args-parser will produce {}
         await main();
-        expect(consoleSpy).toHaveBeenCalledWith('No website provided');
+        expect(consoleLogSpy).toHaveBeenCalledWith('No website provided');
         expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
@@ -36,21 +39,24 @@ describe('main', () => {
         const testURL = 'https://example.com';
         process.argv = ['node', 'main.ts', `--url=${testURL}`];
         await main();
-        expect(consoleSpy).toHaveBeenCalledWith(`Starting Crawl ${testURL}`);
+        expect(consoleLogSpy).toHaveBeenCalledWith(`Starting Crawl ${testURL}`);
         expect(crawlPageSpy).toHaveBeenCalledWith(testURL, testURL, {});
     });
 
     test('should log crawled pages', async () => {
         const testURL = 'https://example.com';
         const crawledPages = {
-            'example.com/path1': 1,
             'example.com/path2': 2,
+            'example.com/path1': 1,
         };
         crawlPageSpy.mockResolvedValue(crawledPages);
         process.argv = ['node', 'main.ts', `--url=${testURL}`];
         await main();
-        for (const page of Object.entries(crawledPages)) {
-            expect(consoleSpy).toHaveBeenCalledWith(page)
-        }
+
+        const expectedReport = [
+            { url: 'example.com/path2', count: 2 },
+            { url: 'example.com/path1', count: 1 },
+        ];
+        expect(consoleTableSpy).toHaveBeenCalledWith(expectedReport);
     });
 });

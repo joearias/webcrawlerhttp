@@ -1,4 +1,4 @@
-import { crawlPage, checkUrlBasicFormat, getURLsFromHTML, normalizeURL } from "./crawl";
+import { crawlPage, getURLsFromHTML, normalizeURL } from "./crawl";
 import { jest } from '@jest/globals';
 
 describe('crawlPage', () => {
@@ -189,18 +189,6 @@ describe('Utils', () => {
 
         });
 
-    });
-
-    describe('checkUrlBasicFormat', () => {
-        test('should return true for valid http/https urls', () => {
-            expect(checkUrlBasicFormat('http://example.com')).toBe(true);
-            expect(checkUrlBasicFormat('https://example.com')).toBe(true);
-        });
-
-        test('should return false for invalid urls', () => {
-            expect(checkUrlBasicFormat('ftp://example.com')).toBe(false);
-            expect(checkUrlBasicFormat('example.com')).toBe(false);
-        });
     });
 
 });
