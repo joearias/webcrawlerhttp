@@ -1,5 +1,7 @@
 import { crawlPage } from "./crawl";
 import arg from 'arg'; // Import the 'arg' module
+import * as readline from 'node:readline/promises';
+import { writeFile } from 'node:fs/promises';
 
 // Parse command-line arguments
 export async function main() {
@@ -33,4 +35,21 @@ export async function main() {
     const report = sortedPages.map(([url, count]) => ({ url, count }));
 
     console.table(report);
+
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+    });
+
+    const answer = await rl.question('Export report to CSV? (y/n) ');
+
+    if (answer.toLowerCase() === 'y') {
+        const csvHeader = 'url,count\n';
+        const csvBody = report.map(({ url, count }) => `"${url}",${count}`).join('\n');
+        const csvContent = csvHeader + csvBody;
+        await writeFile('report.csv', csvContent);
+        console.log('Report exported to report.csv');
+    }
+
+    rl.close();
 }
